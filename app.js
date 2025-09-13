@@ -29,17 +29,7 @@ function setupEventListeners() {
         }
     });
 
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('frequency-type')) {
-            const scheduleItem = e.target.closest('.schedule-item');
-            const nthWeek = scheduleItem.querySelector('.nth-week');
-            if (e.target.value === 'nth') {
-                nthWeek.style.display = 'block';
-            } else {
-                nthWeek.style.display = 'none';
-            }
-        }
-    });
+    // frequency-typeの変更イベントは不要になったので削除
 }
 
 function addGarbageItem() {
@@ -56,10 +46,6 @@ function addGarbageItem() {
             <div class="schedule-item" data-schedule-id="0">
                 <select class="frequency-type">
                     <option value="every">毎週</option>
-                    <option value="nth">第n</option>
-                </select>
-
-                <select class="nth-week" style="display:none;">
                     <option value="1">第1</option>
                     <option value="2">第2</option>
                     <option value="3">第3</option>
@@ -103,10 +89,6 @@ function addScheduleItem(garbageId) {
     newScheduleItem.innerHTML = `
         <select class="frequency-type">
             <option value="every">毎週</option>
-            <option value="nth">第n</option>
-        </select>
-
-        <select class="nth-week" style="display:none;">
             <option value="1">第1</option>
             <option value="2">第2</option>
             <option value="3">第3</option>
@@ -176,12 +158,11 @@ function saveSettings() {
 
         scheduleItems.forEach(scheduleItem => {
             const frequencyType = scheduleItem.querySelector('.frequency-type').value;
-            const nthWeek = scheduleItem.querySelector('.nth-week').value;
             const dayOfWeek = scheduleItem.querySelector('.day-of-week').value;
 
             schedules.push({
                 frequencyType,
-                nthWeek: frequencyType === 'nth' ? nthWeek : null,
+                nthWeek: frequencyType !== 'every' ? frequencyType : null,
                 dayOfWeek
             });
         });
@@ -218,16 +199,12 @@ function loadSettings() {
 
         let schedulesHtml = '';
         garbageItem.schedules.forEach((schedule, scheduleIndex) => {
-            const nthDisplay = schedule.frequencyType === 'nth' ? 'block' : 'none';
+            const selectedFreq = schedule.frequencyType === 'every' ? 'every' : schedule.nthWeek;
             schedulesHtml += `
                 <div class="schedule-item" data-schedule-id="${scheduleIndex}">
                     <select class="frequency-type">
-                        <option value="every" ${schedule.frequencyType === 'every' ? 'selected' : ''}>毎週</option>
-                        <option value="nth" ${schedule.frequencyType === 'nth' ? 'selected' : ''}>第n</option>
-                    </select>
-
-                    <select class="nth-week" style="display:${nthDisplay};">
-                        ${[1,2,3,4,5].map(n => `<option value="${n}" ${schedule.nthWeek == n ? 'selected' : ''}>第${n}</option>`).join('')}
+                        <option value="every" ${selectedFreq === 'every' ? 'selected' : ''}>毎週</option>
+                        ${[1,2,3,4,5].map(n => `<option value="${n}" ${selectedFreq == n ? 'selected' : ''}>第${n}</option>`).join('')}
                     </select>
 
                     <select class="day-of-week">
@@ -323,7 +300,7 @@ function getNextGarbageDate(today, schedule) {
         } else {
             nextDate.setDate(nextDate.getDate() + daysUntilTarget);
         }
-    } else if (schedule.frequencyType === 'nth') {
+    } else {
         const nthWeek = parseInt(schedule.nthWeek);
 
         for (let monthOffset = 0; monthOffset < 2; monthOffset++) {
@@ -437,7 +414,7 @@ function isGarbageDayTomorrow(tomorrow, schedule) {
 
     if (schedule.frequencyType === 'every') {
         return true;
-    } else if (schedule.frequencyType === 'nth') {
+    } else {
         const nthWeek = parseInt(schedule.nthWeek);
         const nthDate = getNthWeekdayOfMonth(tomorrow.getFullYear(), tomorrow.getMonth(), targetDay, nthWeek);
 
@@ -472,10 +449,6 @@ function resetAllSettings() {
                     <div class="schedule-item" data-schedule-id="0">
                         <select class="frequency-type">
                             <option value="every">毎週</option>
-                            <option value="nth">第n</option>
-                        </select>
-
-                        <select class="nth-week" style="display:none;">
                             <option value="1">第1</option>
                             <option value="2">第2</option>
                             <option value="3">第3</option>

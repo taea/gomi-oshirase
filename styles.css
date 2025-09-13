@@ -94,10 +94,6 @@ select:focus {
     min-width: 80px;
 }
 
-.nth-week {
-    min-width: 60px;
-}
-
 .day-of-week {
     flex: 1;
 }
