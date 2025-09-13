@@ -23,7 +23,7 @@ function setupEventListeners() {
             e.target.closest('.schedule-item').remove();
         }
 
-        if (e.target.classList.contains('remove-garbage')) {
+        if (e.target.classList.contains('remove-garbage-icon')) {
             e.target.closest('.garbage-item').remove();
             updateRemoveButtons();
         }
@@ -49,7 +49,7 @@ function addGarbageItem() {
     newGarbageItem.dataset.garbageId = garbageCounter;
 
     newGarbageItem.innerHTML = `
-        <h3>ゴミ設定</h3>
+        <button class="remove-garbage-icon">×</button>
         <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="">
 
         <div class="schedule-settings" data-garbage-id="${garbageCounter}">
@@ -82,7 +82,6 @@ function addGarbageItem() {
         </div>
 
         <button class="add-schedule" data-garbage-id="${garbageCounter}">+ 曜日を追加</button>
-        <button class="remove-garbage">ゴミ設定を削除</button>
     `;
 
     garbageSettings.appendChild(newGarbageItem);
@@ -151,7 +150,7 @@ function updateRemoveButtons() {
     const garbageItems = document.querySelectorAll('.garbage-item');
 
     garbageItems.forEach(item => {
-        const removeButton = item.querySelector('.remove-garbage');
+        const removeButton = item.querySelector('.remove-garbage-icon');
         if (garbageItems.length > 1) {
             removeButton.style.display = 'block';
         } else {
@@ -244,7 +243,7 @@ function loadSettings() {
         });
 
         garbageDiv.innerHTML = `
-            <h3>ゴミ設定</h3>
+            <button class="remove-garbage-icon" ${settings.garbageItems.length > 1 ? '' : 'style="display:none;"'}>×</button>
             <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="${garbageItem.name}">
 
             <div class="schedule-settings" data-garbage-id="${garbageIndex}">
@@ -252,7 +251,6 @@ function loadSettings() {
             </div>
 
             <button class="add-schedule" data-garbage-id="${garbageIndex}">+ 曜日を追加</button>
-            <button class="remove-garbage" ${settings.garbageItems.length > 1 ? '' : 'style="display:none;"'}>ゴミ設定を削除</button>
         `;
 
         garbageSettings.appendChild(garbageDiv);
@@ -264,8 +262,11 @@ function loadSettings() {
 
 function updateNextGarbageDay() {
     const savedSettings = localStorage.getItem('garbageSettings');
+    const nextGarbageDayElement = document.getElementById('nextGarbageDay');
+
     if (!savedSettings) {
-        document.getElementById('nextGarbageDay').textContent = '';
+        nextGarbageDayElement.textContent = '';
+        nextGarbageDayElement.style.display = 'none';
         return;
     }
 
@@ -288,7 +289,8 @@ function updateNextGarbageDay() {
     });
 
     if (nextDates.length === 0) {
-        document.getElementById('nextGarbageDay').textContent = '';
+        nextGarbageDayElement.textContent = '';
+        nextGarbageDayElement.style.display = 'none';
         return;
     }
 
@@ -305,8 +307,9 @@ function updateNextGarbageDay() {
     const day = nextDate.getDate();
     const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][nextDate.getDay()];
 
-    document.getElementById('nextGarbageDay').textContent =
+    nextGarbageDayElement.textContent =
         `次のゴミの日: ${month}/${day} (${dayOfWeek}) - ${uniqueNames.join(', ')}`;
+    nextGarbageDayElement.style.display = 'flex';
 }
 
 function getNextGarbageDate(today, schedule) {
@@ -462,7 +465,7 @@ function resetAllSettings() {
         const garbageSettings = document.getElementById('garbageSettings');
         garbageSettings.innerHTML = `
             <div class="garbage-item" data-garbage-id="0">
-                <h3>ゴミ設定</h3>
+                <button class="remove-garbage-icon" style="display:none;">×</button>
                 <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="">
 
                 <div class="schedule-settings" data-garbage-id="0">
@@ -495,12 +498,13 @@ function resetAllSettings() {
                 </div>
 
                 <button class="add-schedule" data-garbage-id="0">+ 曜日を追加</button>
-                <button class="remove-garbage" style="display:none;">ゴミ設定を削除</button>
             </div>
         `;
 
         document.getElementById('notificationTime').value = '07:30';
-        document.getElementById('nextGarbageDay').textContent = '';
+        const resetNextGarbageDay = document.getElementById('nextGarbageDay');
+        resetNextGarbageDay.textContent = '';
+        resetNextGarbageDay.style.display = 'none';
 
         garbageCounter = 1;
         scheduleCounters = {};
