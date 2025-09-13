@@ -185,6 +185,25 @@ button {
     opacity: 0.9;
 }
 
+.reset-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px dashed #e0e0e0;
+}
+
+.reset-settings {
+    background: #e53e3e;
+    color: white;
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.reset-settings:hover {
+    background: #c53030;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 20px 15px;
