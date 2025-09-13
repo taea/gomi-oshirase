@@ -11,6 +11,7 @@ function setupEventListeners() {
     document.getElementById('addGarbage').addEventListener('click', addGarbageItem);
     document.getElementById('saveSettings').addEventListener('click', saveSettings);
     document.getElementById('enableNotification').addEventListener('click', requestNotificationPermission);
+    document.getElementById('resetSettings').addEventListener('click', resetAllSettings);
 
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('add-schedule')) {
@@ -451,5 +452,59 @@ function showNotification(garbageNames) {
             badge: 'icon-192.png',
             vibrate: [200, 100, 200]
         });
+    }
+}
+
+function resetAllSettings() {
+    if (confirm('すべての設定をリセットしますか？\nこの操作は取り消せません。')) {
+        localStorage.removeItem('garbageSettings');
+
+        const garbageSettings = document.getElementById('garbageSettings');
+        garbageSettings.innerHTML = `
+            <div class="garbage-item" data-garbage-id="0">
+                <h3>ゴミ設定</h3>
+                <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="">
+
+                <div class="schedule-settings" data-garbage-id="0">
+                    <div class="schedule-item" data-schedule-id="0">
+                        <select class="frequency-type">
+                            <option value="every">毎週</option>
+                            <option value="nth">第n</option>
+                        </select>
+
+                        <select class="nth-week" style="display:none;">
+                            <option value="1">第1</option>
+                            <option value="2">第2</option>
+                            <option value="3">第3</option>
+                            <option value="4">第4</option>
+                            <option value="5">第5</option>
+                        </select>
+
+                        <select class="day-of-week">
+                            <option value="0">日曜日</option>
+                            <option value="1">月曜日</option>
+                            <option value="2">火曜日</option>
+                            <option value="3">水曜日</option>
+                            <option value="4">木曜日</option>
+                            <option value="5">金曜日</option>
+                            <option value="6">土曜日</option>
+                        </select>
+
+                        <button class="remove-schedule" style="display:none;">✕</button>
+                    </div>
+                </div>
+
+                <button class="add-schedule" data-garbage-id="0">+ 曜日を追加</button>
+                <button class="remove-garbage" style="display:none;">ゴミ設定を削除</button>
+            </div>
+        `;
+
+        document.getElementById('notificationTime').value = '07:30';
+        document.getElementById('nextGarbageDay').textContent = '';
+
+        garbageCounter = 1;
+        scheduleCounters = {};
+
+        alert('設定をリセットしました');
     }
 }
