@@ -61,6 +61,45 @@
 
         <button id="saveSettings" class="save-settings">設定を保存</button>
 
+        <div id="voiceAssistantSection" class="voice-assistant-section" style="display:none;">
+            <h3>🔊 スマートスピーカー設定</h3>
+
+            <div class="assistant-tabs">
+                <button class="tab-button active" onclick="switchTab('alexa')">📦 Alexa</button>
+                <button class="tab-button" onclick="switchTab('google')">🏠 Google</button>
+                <button class="tab-button" onclick="switchTab('calendar')">📅 カレンダー</button>
+            </div>
+
+            <div id="alexaTab" class="tab-content active">
+                <h4>Alexa用音声コマンド</h4>
+                <div id="alexaCommands" class="command-list"></div>
+                <button onclick="copyAlexaCommands()" class="copy-button">📋 コマンドをコピー</button>
+                <p class="help-text">
+                    コピーしたコマンドをAlexaに話しかけるか、<br>
+                    Alexaアプリの「定型アクション」で設定してください
+                </p>
+            </div>
+
+            <div id="googleTab" class="tab-content" style="display:none;">
+                <h4>Google Homeルーティン設定</h4>
+                <div id="googleRoutines" class="routine-list"></div>
+                <p class="help-text">
+                    Google Homeアプリで「ルーティン」を作成し、<br>
+                    上記の曜日・時刻でカスタムメッセージを設定してください
+                </p>
+            </div>
+
+            <div id="calendarTab" class="tab-content" style="display:none;">
+                <button id="addToGoogleCalendar" class="google-calendar-button">
+                    📅 Googleカレンダーに追加
+                </button>
+                <p class="help-text">
+                    カレンダーに追加後、スマートスピーカーで<br>
+                    「今日の予定を教えて」と設定すると通知されます
+                </p>
+            </div>
+        </div>
+
         <div class="reset-section">
             <button id="resetSettings" class="reset-settings">すべての設定をリセット</button>
         </div>

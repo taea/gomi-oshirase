@@ -1,6 +1,8 @@
 let garbageCounter = 1;
 let scheduleCounters = {};
 
+let nextGarbageData = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
     setupEventListeners();
@@ -12,6 +14,7 @@ function setupEventListeners() {
     document.getElementById('saveSettings').addEventListener('click', saveSettings);
     document.getElementById('enableNotification').addEventListener('click', requestNotificationPermission);
     document.getElementById('resetSettings').addEventListener('click', resetAllSettings);
+    document.getElementById('addToGoogleCalendar').addEventListener('click', addToGoogleCalendar);
 
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('add-schedule')) {
@@ -268,6 +271,8 @@ function updateNextGarbageDay() {
     if (nextDates.length === 0) {
         nextGarbageDayElement.textContent = '';
         nextGarbageDayElement.style.display = 'none';
+        document.getElementById('voiceAssistantSection').style.display = 'none';
+        nextGarbageData = null;
         return;
     }
 
@@ -287,6 +292,18 @@ function updateNextGarbageDay() {
     nextGarbageDayElement.textContent =
         `次のゴミの日: ${month}/${day} (${dayOfWeek}) - ${uniqueNames.join(', ')}`;
     nextGarbageDayElement.style.display = 'flex';
+
+    // スマートスピーカーセクションを表示
+    document.getElementById('voiceAssistantSection').style.display = 'block';
+
+    // 次のゴミの日データを保存
+    nextGarbageData = {
+        date: nextDate,
+        names: uniqueNames
+    };
+
+    // AlexaコマンドとGoogleルーティンを更新
+    updateVoiceAssistantCommands();
 }
 
 function getNextGarbageDate(today, schedule) {
@@ -435,6 +452,161 @@ function showNotification(garbageNames) {
     }
 }
 
+function addToGoogleCalendar() {
+    if (!nextGarbageData) {
+        alert('次のゴミの日が設定されていません');
+        return;
+    }
+
+    const { date, names } = nextGarbageData;
+
+    // イベントの開始時刻を朝7時に設定
+    const startDate = new Date(date);
+    startDate.setHours(7, 0, 0, 0);
+
+    // イベントの終了時刻を朝8時に設定
+    const endDate = new Date(date);
+    endDate.setHours(8, 0, 0, 0);
+
+    // Google Calendar用のフォーマットに変換
+    const formatDate = (d) => {
+        return d.toISOString().replace(/-|:|\.\d{3}/g, '').slice(0, -1);
+    };
+
+    const title = `ゴミの日: ${names.join(', ')}`;
+    const details = `${names.join(', ')}を出してください。\n\n` +
+                   `Google Nest Hubで通知を受け取るには、Google Homeアプリで` +
+                   `「今日の予定を教えて」のルーティンを設定してください。`;
+
+    // Googleカレンダーに追加するためのURLを生成
+    const url = new URL('https://calendar.google.com/calendar/render');
+    url.searchParams.append('action', 'TEMPLATE');
+    url.searchParams.append('text', title);
+    url.searchParams.append('dates', `${formatDate(startDate)}/${formatDate(endDate)}`);
+    url.searchParams.append('details', details);
+    url.searchParams.append('location', '');
+
+    // 繰り返し設定（毎週の場合）
+    const savedSettings = localStorage.getItem('garbageSettings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        const hasWeeklySchedule = settings.garbageItems.some(item =>
+            item.schedules.some(schedule => schedule.frequencyType === 'every')
+        );
+
+        if (hasWeeklySchedule) {
+            // 毎週繰り返しの設定
+            url.searchParams.append('recur', 'RRULE:FREQ=WEEKLY');
+        }
+    }
+
+    // 新しいタブでGoogleカレンダーを開く
+    window.open(url.toString(), '_blank');
+}
+
+function updateVoiceAssistantCommands() {
+    const savedSettings = localStorage.getItem('garbageSettings');
+    if (!savedSettings) return;
+
+    const settings = JSON.parse(savedSettings);
+    const notificationTime = document.getElementById('notificationTime').value || '07:30';
+
+    // Alexaコマンドを生成
+    const alexaCommands = [];
+    const googleRoutines = [];
+
+    settings.garbageItems.forEach(item => {
+        item.schedules.forEach(schedule => {
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            const dayName = dayNames[parseInt(schedule.dayOfWeek)];
+
+            if (schedule.frequencyType === 'every') {
+                // Alexa用コマンド
+                alexaCommands.push(
+                    `「アレクサ、毎週${dayName}曜日の${notificationTime}に${item.name}を出すことをリマインドして」`
+                );
+
+                // Google Home用設定
+                googleRoutines.push({
+                    when: `毎週${dayName}曜日 ${notificationTime}`,
+                    message: `今日は${item.name}の日です。ゴミを出してください`
+                });
+            } else {
+                // 第n週の場合
+                const nthText = `第${schedule.nthWeek}`;
+                alexaCommands.push(
+                    `「アレクサ、${nthText}${dayName}曜日の${notificationTime}に${item.name}を出すことをリマインドして」\n（※月の第n週の判定は手動で確認が必要です）`
+                );
+
+                googleRoutines.push({
+                    when: `${nthText}${dayName}曜日 ${notificationTime}`,
+                    message: `今日は${item.name}の日です。ゴミを出してください`
+                });
+            }
+        });
+    });
+
+    // Alexaコマンドを表示
+    const alexaCommandsDiv = document.getElementById('alexaCommands');
+    if (alexaCommandsDiv) {
+        if (alexaCommands.length > 0) {
+            alexaCommandsDiv.innerHTML = alexaCommands.join('<br><br>');
+        } else {
+            alexaCommandsDiv.innerHTML = 'ゴミの設定を保存すると、ここにコマンドが表示されます';
+        }
+    }
+
+    // Googleルーティンを表示
+    const googleRoutinesDiv = document.getElementById('googleRoutines');
+    if (googleRoutinesDiv) {
+        if (googleRoutines.length > 0) {
+            const routineHtml = googleRoutines.map(r =>
+                `<div><strong>実行時刻:</strong> ${r.when}<br><strong>メッセージ:</strong> ${r.message}</div>`
+            ).join('<hr>');
+            googleRoutinesDiv.innerHTML = routineHtml;
+        } else {
+            googleRoutinesDiv.innerHTML = 'ゴミの設定を保存すると、ここに設定内容が表示されます';
+        }
+    }
+}
+
+function switchTab(tabName) {
+    // タブボタンの切り替え
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // タブコンテンツの切り替え
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+
+    if (tabName === 'alexa') {
+        document.getElementById('alexaTab').style.display = 'block';
+    } else if (tabName === 'google') {
+        document.getElementById('googleTab').style.display = 'block';
+    } else if (tabName === 'calendar') {
+        document.getElementById('calendarTab').style.display = 'block';
+    }
+}
+
+function copyAlexaCommands() {
+    const alexaCommandsDiv = document.getElementById('alexaCommands');
+    const text = alexaCommandsDiv.innerText;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = '✅ コピーしました！';
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, 2000);
+    }).catch(err => {
+        alert('コピーに失敗しました');
+    });
+}
+
 function resetAllSettings() {
     if (confirm('すべての設定をリセットしますか？\nこの操作は取り消せません。')) {
         localStorage.removeItem('garbageSettings');
@@ -478,6 +650,8 @@ function resetAllSettings() {
         const resetNextGarbageDay = document.getElementById('nextGarbageDay');
         resetNextGarbageDay.textContent = '';
         resetNextGarbageDay.style.display = 'none';
+        document.getElementById('voiceAssistantSection').style.display = 'none';
+        nextGarbageData = null;
 
         garbageCounter = 1;
         scheduleCounters = {};
