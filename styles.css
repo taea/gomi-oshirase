@@ -38,13 +38,46 @@ h3 {
     color: white;
     padding: 15px;
     border-radius: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     text-align: center;
     font-weight: bold;
     min-height: 50px;
     display: none;
     align-items: center;
     justify-content: center;
+}
+
+.google-calendar-section {
+    background: #f0f7ff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.google-calendar-button {
+    background: #4285f4;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.google-calendar-button:hover {
+    background: #357ae8;
+}
+
+.calendar-help-text {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
 }
 
 .garbage-item {

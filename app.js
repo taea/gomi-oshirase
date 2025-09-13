@@ -1,6 +1,8 @@
 let garbageCounter = 1;
 let scheduleCounters = {};
 
+let nextGarbageData = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
     setupEventListeners();
@@ -12,6 +14,7 @@ function setupEventListeners() {
     document.getElementById('saveSettings').addEventListener('click', saveSettings);
     document.getElementById('enableNotification').addEventListener('click', requestNotificationPermission);
     document.getElementById('resetSettings').addEventListener('click', resetAllSettings);
+    document.getElementById('addToGoogleCalendar').addEventListener('click', addToGoogleCalendar);
 
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('add-schedule')) {
@@ -268,6 +271,8 @@ function updateNextGarbageDay() {
     if (nextDates.length === 0) {
         nextGarbageDayElement.textContent = '';
         nextGarbageDayElement.style.display = 'none';
+        document.getElementById('googleCalendarSection').style.display = 'none';
+        nextGarbageData = null;
         return;
     }
 
@@ -287,6 +292,15 @@ function updateNextGarbageDay() {
     nextGarbageDayElement.textContent =
         `次のゴミの日: ${month}/${day} (${dayOfWeek}) - ${uniqueNames.join(', ')}`;
     nextGarbageDayElement.style.display = 'flex';
+
+    // Googleカレンダーセクションを表示
+    document.getElementById('googleCalendarSection').style.display = 'block';
+
+    // 次のゴミの日データを保存
+    nextGarbageData = {
+        date: nextDate,
+        names: uniqueNames
+    };
 }
 
 function getNextGarbageDate(today, schedule) {
@@ -435,6 +449,58 @@ function showNotification(garbageNames) {
     }
 }
 
+function addToGoogleCalendar() {
+    if (!nextGarbageData) {
+        alert('次のゴミの日が設定されていません');
+        return;
+    }
+
+    const { date, names } = nextGarbageData;
+
+    // イベントの開始時刻を朝7時に設定
+    const startDate = new Date(date);
+    startDate.setHours(7, 0, 0, 0);
+
+    // イベントの終了時刻を朝8時に設定
+    const endDate = new Date(date);
+    endDate.setHours(8, 0, 0, 0);
+
+    // Google Calendar用のフォーマットに変換
+    const formatDate = (d) => {
+        return d.toISOString().replace(/-|:|\.\d{3}/g, '').slice(0, -1);
+    };
+
+    const title = `ゴミの日: ${names.join(', ')}`;
+    const details = `${names.join(', ')}を出してください。\n\n` +
+                   `Google Nest Hubで通知を受け取るには、Google Homeアプリで` +
+                   `「今日の予定を教えて」のルーティンを設定してください。`;
+
+    // Googleカレンダーに追加するためのURLを生成
+    const url = new URL('https://calendar.google.com/calendar/render');
+    url.searchParams.append('action', 'TEMPLATE');
+    url.searchParams.append('text', title);
+    url.searchParams.append('dates', `${formatDate(startDate)}/${formatDate(endDate)}`);
+    url.searchParams.append('details', details);
+    url.searchParams.append('location', '');
+
+    // 繰り返し設定（毎週の場合）
+    const savedSettings = localStorage.getItem('garbageSettings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        const hasWeeklySchedule = settings.garbageItems.some(item =>
+            item.schedules.some(schedule => schedule.frequencyType === 'every')
+        );
+
+        if (hasWeeklySchedule) {
+            // 毎週繰り返しの設定
+            url.searchParams.append('recur', 'RRULE:FREQ=WEEKLY');
+        }
+    }
+
+    // 新しいタブでGoogleカレンダーを開く
+    window.open(url.toString(), '_blank');
+}
+
 function resetAllSettings() {
     if (confirm('すべての設定をリセットしますか？\nこの操作は取り消せません。')) {
         localStorage.removeItem('garbageSettings');
@@ -478,6 +544,8 @@ function resetAllSettings() {
         const resetNextGarbageDay = document.getElementById('nextGarbageDay');
         resetNextGarbageDay.textContent = '';
         resetNextGarbageDay.style.display = 'none';
+        document.getElementById('googleCalendarSection').style.display = 'none';
+        nextGarbageData = null;
 
         garbageCounter = 1;
         scheduleCounters = {};
