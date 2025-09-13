@@ -1,10 +1,10 @@
 const CACHE_NAME = 'gomi-oshirase-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/app.js',
-    '/manifest.json'
+    '/gomi-oshirase/',
+    '/gomi-oshirase/index.html',
+    '/gomi-oshirase/styles.css',
+    '/gomi-oshirase/app.js',
+    '/gomi-oshirase/manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -47,8 +47,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('push', event => {
     const options = {
         body: event.data ? event.data.text() : 'ゴミの日です！',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
+        icon: '/gomi-oshirase/icon-192.png',
+        badge: '/gomi-oshirase/icon-192.png',
         vibrate: [200, 100, 200],
         data: {
             dateOfArrival: Date.now(),
@@ -64,7 +64,7 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
     event.notification.close();
     event.waitUntil(
-        clients.openWindow('/')
+        clients.openWindow('/gomi-oshirase/')
     );
 });
 
