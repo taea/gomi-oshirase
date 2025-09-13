@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゴミの日お知らせくん</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+</head>
+<body>
+    <div class="container">
+        <h1>ゴミの日お知らせくん</h1>
+
+        <div id="nextGarbageDay" class="next-garbage-day"></div>
+
+        <div class="garbage-settings" id="garbageSettings">
+            <div class="garbage-item" data-garbage-id="0">
+                <h3>ゴミ設定</h3>
+                <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="">
+
+                <div class="schedule-settings" data-garbage-id="0">
+                    <div class="schedule-item" data-schedule-id="0">
+                        <select class="frequency-type">
+                            <option value="every">毎週</option>
+                            <option value="nth">第n</option>
+                        </select>
+
+                        <select class="nth-week" style="display:none;">
+                            <option value="1">第1</option>
+                            <option value="2">第2</option>
+                            <option value="3">第3</option>
+                            <option value="4">第4</option>
+                            <option value="5">第5</option>
+                        </select>
+
+                        <select class="day-of-week">
+                            <option value="0">日曜日</option>
+                            <option value="1">月曜日</option>
+                            <option value="2">火曜日</option>
+                            <option value="3">水曜日</option>
+                            <option value="4">木曜日</option>
+                            <option value="5">金曜日</option>
+                            <option value="6">土曜日</option>
+                        </select>
+
+                        <button class="remove-schedule" style="display:none;">✕</button>
+                    </div>
+                </div>
+
+                <button class="add-schedule" data-garbage-id="0">+ 曜日を追加</button>
+                <button class="remove-garbage" style="display:none;">ゴミ設定を削除</button>
+            </div>
+        </div>
+
+        <button id="addGarbage" class="add-garbage">+ ゴミ設定を追加</button>
+
+        <div class="notification-settings">
+            <h3>通知設定</h3>
+            <div class="notification-time">
+                <input type="time" id="notificationTime" value="07:30">
+                <span>にスマホに通知する</span>
+            </div>
+            <button id="enableNotification">通知を有効にする</button>
+        </div>
+
+        <button id="saveSettings" class="save-settings">設定を保存</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
