@@ -42,7 +42,7 @@ h3 {
     text-align: center;
     font-weight: bold;
     min-height: 50px;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
 }
@@ -52,10 +52,11 @@ h3 {
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
+    position: relative;
 }
 
 .garbage-name {
-    width: 100%;
+    width: calc(100% - 40px);
     padding: 10px;
     border: 2px solid #e0e0e0;
     border-radius: 5px;
@@ -93,10 +94,6 @@ select:focus {
     min-width: 80px;
 }
 
-.nth-week {
-    min-width: 60px;
-}
-
 .day-of-week {
     flex: 1;
 }
@@ -114,26 +111,43 @@ button {
     background: #667eea;
     color: white;
     margin-top: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .add-schedule:hover, .add-garbage:hover {
     background: #5a67d8;
 }
 
-.remove-schedule, .remove-garbage {
+.remove-schedule {
     background: #f56565;
     color: white;
     padding: 5px 10px;
     margin-left: 10px;
 }
 
-.remove-schedule:hover, .remove-garbage:hover {
+.remove-garbage-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    color: #999;
+    font-size: 24px;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.remove-schedule:hover {
     background: #ed5555;
 }
 
-.remove-garbage {
-    margin-top: 15px;
-    width: 100%;
+.remove-garbage-icon:hover {
+    color: #f56565;
 }
 
 .notification-settings {

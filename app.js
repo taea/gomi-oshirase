@@ -23,23 +23,13 @@ function setupEventListeners() {
             e.target.closest('.schedule-item').remove();
         }
 
-        if (e.target.classList.contains('remove-garbage')) {
+        if (e.target.classList.contains('remove-garbage-icon')) {
             e.target.closest('.garbage-item').remove();
             updateRemoveButtons();
         }
     });
 
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('frequency-type')) {
-            const scheduleItem = e.target.closest('.schedule-item');
-            const nthWeek = scheduleItem.querySelector('.nth-week');
-            if (e.target.value === 'nth') {
-                nthWeek.style.display = 'block';
-            } else {
-                nthWeek.style.display = 'none';
-            }
-        }
-    });
+    // frequency-typeの変更イベントは不要になったので削除
 }
 
 function addGarbageItem() {
@@ -49,17 +39,13 @@ function addGarbageItem() {
     newGarbageItem.dataset.garbageId = garbageCounter;
 
     newGarbageItem.innerHTML = `
-        <h3>ゴミ設定</h3>
+        <button class="remove-garbage-icon">×</button>
         <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="">
 
         <div class="schedule-settings" data-garbage-id="${garbageCounter}">
             <div class="schedule-item" data-schedule-id="0">
                 <select class="frequency-type">
                     <option value="every">毎週</option>
-                    <option value="nth">第n</option>
-                </select>
-
-                <select class="nth-week" style="display:none;">
                     <option value="1">第1</option>
                     <option value="2">第2</option>
                     <option value="3">第3</option>
@@ -68,13 +54,13 @@ function addGarbageItem() {
                 </select>
 
                 <select class="day-of-week">
-                    <option value="0">日曜日</option>
                     <option value="1">月曜日</option>
                     <option value="2">火曜日</option>
                     <option value="3">水曜日</option>
                     <option value="4">木曜日</option>
                     <option value="5">金曜日</option>
                     <option value="6">土曜日</option>
+                    <option value="0">日曜日</option>
                 </select>
 
                 <button class="remove-schedule" style="display:none;">✕</button>
@@ -82,7 +68,6 @@ function addGarbageItem() {
         </div>
 
         <button class="add-schedule" data-garbage-id="${garbageCounter}">+ 曜日を追加</button>
-        <button class="remove-garbage">ゴミ設定を削除</button>
     `;
 
     garbageSettings.appendChild(newGarbageItem);
@@ -104,10 +89,6 @@ function addScheduleItem(garbageId) {
     newScheduleItem.innerHTML = `
         <select class="frequency-type">
             <option value="every">毎週</option>
-            <option value="nth">第n</option>
-        </select>
-
-        <select class="nth-week" style="display:none;">
             <option value="1">第1</option>
             <option value="2">第2</option>
             <option value="3">第3</option>
@@ -151,7 +132,7 @@ function updateRemoveButtons() {
     const garbageItems = document.querySelectorAll('.garbage-item');
 
     garbageItems.forEach(item => {
-        const removeButton = item.querySelector('.remove-garbage');
+        const removeButton = item.querySelector('.remove-garbage-icon');
         if (garbageItems.length > 1) {
             removeButton.style.display = 'block';
         } else {
@@ -177,12 +158,11 @@ function saveSettings() {
 
         scheduleItems.forEach(scheduleItem => {
             const frequencyType = scheduleItem.querySelector('.frequency-type').value;
-            const nthWeek = scheduleItem.querySelector('.nth-week').value;
             const dayOfWeek = scheduleItem.querySelector('.day-of-week').value;
 
             schedules.push({
                 frequencyType,
-                nthWeek: frequencyType === 'nth' ? nthWeek : null,
+                nthWeek: frequencyType !== 'every' ? frequencyType : null,
                 dayOfWeek
             });
         });
@@ -219,20 +199,16 @@ function loadSettings() {
 
         let schedulesHtml = '';
         garbageItem.schedules.forEach((schedule, scheduleIndex) => {
-            const nthDisplay = schedule.frequencyType === 'nth' ? 'block' : 'none';
+            const selectedFreq = schedule.frequencyType === 'every' ? 'every' : schedule.nthWeek;
             schedulesHtml += `
                 <div class="schedule-item" data-schedule-id="${scheduleIndex}">
                     <select class="frequency-type">
-                        <option value="every" ${schedule.frequencyType === 'every' ? 'selected' : ''}>毎週</option>
-                        <option value="nth" ${schedule.frequencyType === 'nth' ? 'selected' : ''}>第n</option>
-                    </select>
-
-                    <select class="nth-week" style="display:${nthDisplay};">
-                        ${[1,2,3,4,5].map(n => `<option value="${n}" ${schedule.nthWeek == n ? 'selected' : ''}>第${n}</option>`).join('')}
+                        <option value="every" ${selectedFreq === 'every' ? 'selected' : ''}>毎週</option>
+                        ${[1,2,3,4,5].map(n => `<option value="${n}" ${selectedFreq == n ? 'selected' : ''}>第${n}</option>`).join('')}
                     </select>
 
                     <select class="day-of-week">
-                        ${[0,1,2,3,4,5,6].map(d => {
+                        ${[1,2,3,4,5,6,0].map(d => {
                             const days = ['日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'];
                             return `<option value="${d}" ${schedule.dayOfWeek == d ? 'selected' : ''}>${days[d]}</option>`;
                         }).join('')}
@@ -244,7 +220,7 @@ function loadSettings() {
         });
 
         garbageDiv.innerHTML = `
-            <h3>ゴミ設定</h3>
+            <button class="remove-garbage-icon" ${settings.garbageItems.length > 1 ? '' : 'style="display:none;"'}>×</button>
             <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="${garbageItem.name}">
 
             <div class="schedule-settings" data-garbage-id="${garbageIndex}">
@@ -252,7 +228,6 @@ function loadSettings() {
             </div>
 
             <button class="add-schedule" data-garbage-id="${garbageIndex}">+ 曜日を追加</button>
-            <button class="remove-garbage" ${settings.garbageItems.length > 1 ? '' : 'style="display:none;"'}>ゴミ設定を削除</button>
         `;
 
         garbageSettings.appendChild(garbageDiv);
@@ -264,8 +239,11 @@ function loadSettings() {
 
 function updateNextGarbageDay() {
     const savedSettings = localStorage.getItem('garbageSettings');
+    const nextGarbageDayElement = document.getElementById('nextGarbageDay');
+
     if (!savedSettings) {
-        document.getElementById('nextGarbageDay').textContent = '';
+        nextGarbageDayElement.textContent = '';
+        nextGarbageDayElement.style.display = 'none';
         return;
     }
 
@@ -288,7 +266,8 @@ function updateNextGarbageDay() {
     });
 
     if (nextDates.length === 0) {
-        document.getElementById('nextGarbageDay').textContent = '';
+        nextGarbageDayElement.textContent = '';
+        nextGarbageDayElement.style.display = 'none';
         return;
     }
 
@@ -305,8 +284,9 @@ function updateNextGarbageDay() {
     const day = nextDate.getDate();
     const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][nextDate.getDay()];
 
-    document.getElementById('nextGarbageDay').textContent =
+    nextGarbageDayElement.textContent =
         `次のゴミの日: ${month}/${day} (${dayOfWeek}) - ${uniqueNames.join(', ')}`;
+    nextGarbageDayElement.style.display = 'flex';
 }
 
 function getNextGarbageDate(today, schedule) {
@@ -320,7 +300,7 @@ function getNextGarbageDate(today, schedule) {
         } else {
             nextDate.setDate(nextDate.getDate() + daysUntilTarget);
         }
-    } else if (schedule.frequencyType === 'nth') {
+    } else {
         const nthWeek = parseInt(schedule.nthWeek);
 
         for (let monthOffset = 0; monthOffset < 2; monthOffset++) {
@@ -434,7 +414,7 @@ function isGarbageDayTomorrow(tomorrow, schedule) {
 
     if (schedule.frequencyType === 'every') {
         return true;
-    } else if (schedule.frequencyType === 'nth') {
+    } else {
         const nthWeek = parseInt(schedule.nthWeek);
         const nthDate = getNthWeekdayOfMonth(tomorrow.getFullYear(), tomorrow.getMonth(), targetDay, nthWeek);
 
@@ -462,17 +442,13 @@ function resetAllSettings() {
         const garbageSettings = document.getElementById('garbageSettings');
         garbageSettings.innerHTML = `
             <div class="garbage-item" data-garbage-id="0">
-                <h3>ゴミ設定</h3>
+                <button class="remove-garbage-icon" style="display:none;">×</button>
                 <input type="text" class="garbage-name" placeholder="ゴミ名（例：燃えるゴミ）" value="">
 
                 <div class="schedule-settings" data-garbage-id="0">
                     <div class="schedule-item" data-schedule-id="0">
                         <select class="frequency-type">
                             <option value="every">毎週</option>
-                            <option value="nth">第n</option>
-                        </select>
-
-                        <select class="nth-week" style="display:none;">
                             <option value="1">第1</option>
                             <option value="2">第2</option>
                             <option value="3">第3</option>
@@ -495,12 +471,13 @@ function resetAllSettings() {
                 </div>
 
                 <button class="add-schedule" data-garbage-id="0">+ 曜日を追加</button>
-                <button class="remove-garbage" style="display:none;">ゴミ設定を削除</button>
             </div>
         `;
 
         document.getElementById('notificationTime').value = '07:30';
-        document.getElementById('nextGarbageDay').textContent = '';
+        const resetNextGarbageDay = document.getElementById('nextGarbageDay');
+        resetNextGarbageDay.textContent = '';
+        resetNextGarbageDay.style.display = 'none';
 
         garbageCounter = 1;
         scheduleCounters = {};
