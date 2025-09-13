@@ -54,13 +54,13 @@ function addGarbageItem() {
                 </select>
 
                 <select class="day-of-week">
-                    <option value="0">日曜日</option>
                     <option value="1">月曜日</option>
                     <option value="2">火曜日</option>
                     <option value="3">水曜日</option>
                     <option value="4">木曜日</option>
                     <option value="5">金曜日</option>
                     <option value="6">土曜日</option>
+                    <option value="0">日曜日</option>
                 </select>
 
                 <button class="remove-schedule" style="display:none;">✕</button>
@@ -208,7 +208,7 @@ function loadSettings() {
                     </select>
 
                     <select class="day-of-week">
-                        ${[0,1,2,3,4,5,6].map(d => {
+                        ${[1,2,3,4,5,6,0].map(d => {
                             const days = ['日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'];
                             return `<option value="${d}" ${schedule.dayOfWeek == d ? 'selected' : ''}>${days[d]}</option>`;
                         }).join('')}
