@@ -1,11 +1,11 @@
-# Google Nest Hub連携ガイド
+# スマートスピーカー連携ガイド（Google Nest Hub / Alexa）
 
-Google Nest Hubにゴミの日を音声で通知させる方法について説明します。
+Google Nest HubやAlexaにゴミの日を音声で通知させる方法について説明します。
 
-## 実装方法の選択肢
+## 📱 カレンダーを使わない方法
 
-### 1. Google Calendar + ルーティン（推奨）
-最も簡単で確実な方法です。
+### 1. IFTTT + Webhooks（推奨・カレンダー不要）
+IFTTTを使ってWebアプリから直接スマートスピーカーに通知を送る方法。
 
 #### 設定手順
 1. **Googleカレンダーの作成**
